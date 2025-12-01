@@ -7,81 +7,83 @@ in text using a database of company IDs and URLs.
 
 from typing import List, Dict, Any
 from contracts import (
-    specification, 
-    pre_description, 
+    specification,
+    pre_description,
     post_description,
     raises,
     precondition,
     postcondition,
     ImplementThis,
     PreconditionViolation,
-    PostconditionViolation
+    PostconditionViolation,
 )
 
 
-def resolve_company_names_precondition(text: str, company_database: List[Dict[str, Any]]) -> bool:
+def resolve_company_names_precondition(
+    text: str, company_database: List[Dict[str, Any]]
+) -> bool:
     """Precondition: text must be non-empty and database must contain valid company records."""
     if not isinstance(text, str) or len(text.strip()) == 0:
         return False
-    
+
     if not isinstance(company_database, list):
         return False
-    
+
     for record in company_database:
         if not isinstance(record, dict):
             return False
-        required_fields = {'id', 'name', 'url'}
+        required_fields = {"id", "name", "url"}
         if not required_fields.issubset(record.keys()):
             return False
-        if not isinstance(record['id'], int):
+        if not isinstance(record["id"], int):
             return False
-        if not isinstance(record['name'], str) or len(record['name'].strip()) == 0:
+        if not isinstance(record["name"], str) or len(record["name"].strip()) == 0:
             return False
-        if not isinstance(record['url'], str) or len(record['url'].strip()) == 0:
+        if not isinstance(record["url"], str) or len(record["url"].strip()) == 0:
             return False
-    
+
     return True
 
 
 def resolve_company_names_postcondition(
-    result: List[Dict[str, Any]], 
-    text: str, 
-    company_database: List[Dict[str, Any]]
+    result: List[Dict[str, Any]], text: str, company_database: List[Dict[str, Any]]
 ) -> bool:
     """Postcondition: result must be a subset of database with valid structure."""
     if not isinstance(result, list):
         return False
-    
+
     # All returned records must be from the original database
     for company in result:
         if not isinstance(company, dict):
             return False
-        
+
         # Check that this company exists in the database
         found_in_db = False
         for db_record in company_database:
-            if (company.get('id') == db_record.get('id') and
-                company.get('name') == db_record.get('name') and
-                company.get('url') == db_record.get('url')):
+            if (
+                company.get("id") == db_record.get("id")
+                and company.get("name") == db_record.get("name")
+                and company.get("url") == db_record.get("url")
+            ):
                 found_in_db = True
                 break
-        
+
         if not found_in_db:
             return False
-        
+
         # Check required fields are present
-        required_fields = {'id', 'name', 'url'}
+        required_fields = {"id", "name", "url"}
         if not required_fields.issubset(company.keys()):
             return False
-    
+
     # No duplicates in result
     seen_ids = set()
     for company in result:
-        company_id = company.get('id')
+        company_id = company.get("id")
         if company_id in seen_ids:
             return False
         seen_ids.add(company_id)
-    
+
     return True
 
 
@@ -109,6 +111,13 @@ def resolve_company_names(
         List of resolved companies with their database information
     """
     raise ImplementThis("Company name resolution not yet implemented")
+
+
+@specification(
+    "We have a list of company names and their ids, we will send these to an LLM, along with a text and ask it to associate a new exact string name it finds with a company id if it appears to be the same entity. It should use a pydantic model to constrain the LLM output and return this instead of a dictionary."
+)
+def entity_resolve_llm(test: str, company_database) -> Any:
+    raise ImplementThis("Not implemented")
 
 
 if __name__ == "__main__":
