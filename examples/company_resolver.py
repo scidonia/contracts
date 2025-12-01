@@ -203,3 +203,82 @@ if __name__ == "__main__":
             )
     except Exception as e:
         print(f"Error: {e}")
+
+    print("\n" + "="*50)
+    print("TESTING CONTRACT VIOLATIONS AND EDGE CASES")
+    print("="*50)
+
+    # Test 1: Empty text (should violate precondition)
+    print("\nTest 1: Empty text (precondition violation)")
+    try:
+        result = entity_resolve_llm("", sample_database)
+        print(f"Unexpected success: {result}")
+    except PreconditionViolation as e:
+        print(f"Expected precondition violation: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+    # Test 2: None text (should violate precondition)
+    print("\nTest 2: None text (precondition violation)")
+    try:
+        result = entity_resolve_llm(None, sample_database)
+        print(f"Unexpected success: {result}")
+    except (PreconditionViolation, TypeError) as e:
+        print(f"Expected error: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+    # Test 3: Invalid database - missing required fields
+    print("\nTest 3: Invalid database - missing required fields (precondition violation)")
+    invalid_db = [
+        {"id": 1, "name": "Apple Inc."},  # Missing 'url' field
+        {"id": 2, "name": "Microsoft Corporation", "url": "https://microsoft.com"},
+    ]
+    try:
+        result = entity_resolve_llm(sample_text, invalid_db)
+        print(f"Unexpected success: {result}")
+    except PreconditionViolation as e:
+        print(f"Expected precondition violation: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+    # Test 4: Invalid database - wrong data types
+    print("\nTest 4: Invalid database - wrong data types (precondition violation)")
+    invalid_db2 = [
+        {"id": "1", "name": "Apple Inc.", "url": "https://apple.com"},  # id should be int
+        {"id": 2, "name": "Microsoft Corporation", "url": "https://microsoft.com"},
+    ]
+    try:
+        result = entity_resolve_llm(sample_text, invalid_db2)
+        print(f"Unexpected success: {result}")
+    except PreconditionViolation as e:
+        print(f"Expected precondition violation: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+    # Test 5: Empty database (should work but return empty results)
+    print("\nTest 5: Empty database (should work)")
+    try:
+        result = entity_resolve_llm(sample_text, [])
+        print(f"Empty database result: {result}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Test 6: Text with no company mentions (should work but return empty results)
+    print("\nTest 6: Text with no company mentions (should work)")
+    try:
+        result = entity_resolve_llm("This is just some random text about weather and food.", sample_database)
+        print(f"No companies result: {result}")
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # Test 7: Very long text (stress test)
+    print("\nTest 7: Very long text (stress test)")
+    long_text = "Apple " * 100 + "and Microsoft " * 50 + "are mentioned many times."
+    try:
+        result = entity_resolve_llm(long_text, sample_database)
+        print(f"Long text result: Found {len(result)} matches")
+        for match in result:
+            print(f"  - '{match.matched_text}' -> ID {match.company_id} (confidence: {match.confidence})")
+    except Exception as e:
+        print(f"Error: {e}")
