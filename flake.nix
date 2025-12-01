@@ -52,12 +52,7 @@
         "x86_64-darwin"
       ];
       perSystem =
-        {
-          pkgs,
-          config,
-          inputs',
-          ...
-        }:
+        { pkgs, config, inputs', ... }:
         {
           treefmt = {
             programs = {
@@ -66,17 +61,22 @@
               mdformat.enable = true;
               taplo.enable = true;
             };
-            settings = {
-              global.excludes = [
-                ".envrc"
-                ".python-version"
-              ];
-            };
+            settings.global.excludes = [ ".envrc" ".python-version" ];
           };
+
           uvpart = {
             workspaceRoot = ./.;
-            extraPackages = [ pkgs.hello ];
+            extraPackages = [ pkgs.openjdk17 pkgs.z3 ];
             uv = inputs'.uv2nix.packages.uv-bin;
+
+            # <-- move shellHook here
+            shellHook = ''
+              export JAVA_HOME=${pkgs.openjdk17.home}
+              export Z3_EXE=${pkgs.z3}/bin/z3
+              export PATH=${pkgs.openjdk17}/bin:${pkgs.z3}/bin:$PATH
+              echo "JAVA_HOME=$JAVA_HOME"
+              echo "Z3_EXE=$Z3_EXE"
+            '';
           };
         };
     };
