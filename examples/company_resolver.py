@@ -6,6 +6,7 @@ in text using a database of company IDs and URLs.
 """
 
 from typing import List, Dict, Any
+from pydantic import BaseModel
 from contracts import (
     specification,
     pre_description,
@@ -17,6 +18,13 @@ from contracts import (
     PreconditionViolation,
     PostconditionViolation,
 )
+
+
+class CompanyMatch(BaseModel):
+    """Pydantic model for LLM-resolved company matches."""
+    company_id: int
+    matched_text: str
+    confidence: float
 
 
 def resolve_company_names_precondition(
@@ -116,7 +124,17 @@ def resolve_company_names(
 @specification(
     "We have a list of company names and their ids, we will send these to an LLM, along with a text and ask it to associate a new exact string name it finds with a company id if it appears to be the same entity. It should use a pydantic model to constrain the LLM output and return this instead of a dictionary."
 )
-def entity_resolve_llm(test: str, company_database) -> Any:
+def entity_resolve_llm(text: str, company_database: List[Dict[str, Any]]) -> List[CompanyMatch]:
+    """
+    Use an LLM to resolve company entities in text with structured output.
+    
+    Args:
+        text: The input text to search for company names
+        company_database: List of company records with 'id', 'name', and 'url' fields
+        
+    Returns:
+        List of CompanyMatch objects with structured LLM output
+    """
     raise ImplementThis("Not implemented")
 
 
