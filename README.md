@@ -6,6 +6,8 @@ This project provides a Python framework for **Design by Contract** programming,
 
 Design by Contract is a software development methodology where you specify the behavior of software components using precise assertions. This framework allows you to write code iteratively while maintaining formal specifications that can be verified at runtime.
 
+This project follows a **systematic development plan** with runtime verification as the foundation, and plans to add **static checking features** at a later stage to provide compile-time contract verification.
+
 ## Development Workflow
 
 The framework supports an iterative development style:
@@ -49,6 +51,16 @@ When enabled with appropriate flags, the framework:
 - **Automated testing support** - Generate test cases based on contracts
 - **Iterative development** - Start with stubs and gradually add implementation
 - **Formal verification** - Mathematical precision in software specifications
+
+## Roadmap
+
+The project is being developed through a systematic plan:
+
+1. **Phase 1 (Current)** - Runtime verification and contract checking
+2. **Phase 2 (Planned)** - Static analysis and compile-time contract verification
+3. **Phase 3 (Future)** - Advanced formal verification tools and IDE integration
+
+The current implementation focuses on runtime verification to establish the foundation, with static checking features planned for future releases.
 
 ## Usage
 
