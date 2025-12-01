@@ -124,6 +124,12 @@ def resolve_company_names(
 @specification(
     "We have a list of company names and their ids, we will send these to an LLM, along with a text and ask it to associate a new exact string name it finds with a company id if it appears to be the same entity. It should use a pydantic model to constrain the LLM output and return this instead of a dictionary."
 )
+@pre_description(
+    "Text must be a non-empty string and database must be a list of valid company records with 'id', 'name', and 'url' fields"
+)
+@post_description(
+    "Returns a list of CompanyMatch objects where each matched_text exists in the input text, company_id corresponds to a valid database entry, and confidence is between 0.0 and 1.0"
+)
 def entity_resolve_llm(text: str, company_database: List[Dict[str, Any]]) -> List[CompanyMatch]:
     """
     Use an LLM to resolve company entities in text with structured output.
