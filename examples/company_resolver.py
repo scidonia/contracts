@@ -118,7 +118,22 @@ def resolve_company_names(
     Returns:
         List of resolved companies with their database information
     """
-    raise ImplementThis("Company name resolution not yet implemented")
+    resolved_companies = []
+    
+    for company in company_database:
+        company_name = company["name"]
+        
+        # Check if the company name appears in the text
+        if company_name in text:
+            # Create a copy of the company record to return
+            resolved_company = {
+                "id": company["id"],
+                "name": company["name"],
+                "url": company["url"]
+            }
+            resolved_companies.append(resolved_company)
+    
+    return resolved_companies
 
 
 def entity_resolve_llm_precondition(text: str, company_database: List[Dict[str, Any]]) -> bool:
