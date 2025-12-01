@@ -32,7 +32,7 @@ The framework supports an iterative development style:
 - **`@postcondition`** - Defines conditions that must be true when the function returns
 - **`@invariant`** - Defines conditions that must remain true throughout execution
 
-The logical decorators use **total Python fragments** (side-effect free expressions) that can be evaluated safely. All logical conditions must be **fully mypy typed** with no untyped variables, and should **favor functions over lambdas** for better type safety and readability.
+The logical decorators use **total Python fragments** (side-effect free expressions) that can be evaluated safely. All logical conditions must be **fully mypy typed** with no untyped variables. This will enable us to use static checking techniques at a later stage.
 
 ## Runtime Verification
 
@@ -66,7 +66,7 @@ The current implementation focuses on runtime verification to establish the foun
 
 ```python
 def div_precondition(a: int, b: int) -> bool:
-    return isinstance(a, int) and isinstance(b, int) and b != 0
+    return b != 0
 
 def div_postcondition(result: int, a: int, b: int) -> bool:
     return result == a // b
