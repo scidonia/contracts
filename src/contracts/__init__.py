@@ -7,7 +7,7 @@ Design by Contract programming with runtime verification.
 
 import functools
 import os
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, List, Type
 
 F = TypeVar('F', bound=Callable[..., Any])
 
@@ -131,6 +131,24 @@ def invariant_description(description: str) -> Callable[[F], F]:
         if not hasattr(func, '_contract_metadata'):
             func._contract_metadata = {}
         func._contract_metadata['invariant_description'] = description
+        return func
+    return decorator
+
+
+def raises(exceptions: List[Type[Exception]]) -> Callable[[F], F]:
+    """
+    Decorator to specify the list of possible exceptions a function can raise.
+    
+    Args:
+        exceptions: A list of exception types that the function may raise
+        
+    Returns:
+        The decorated function with exception specification metadata
+    """
+    def decorator(func: F) -> F:
+        if not hasattr(func, '_contract_metadata'):
+            func._contract_metadata = {}
+        func._contract_metadata['raises'] = exceptions
         return func
     return decorator
 
@@ -288,6 +306,7 @@ __all__ = [
     'pre_description',
     'post_description',
     'invariant_description',
+    'raises',
     'precondition',
     'postcondition',
     'invariant',

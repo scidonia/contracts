@@ -6,10 +6,12 @@ from contracts import (
     specification,
     pre_description,
     post_description,
+    raises,
     precondition,
     postcondition,
     enable_contracts,
     ImplementThis,
+    PreconditionViolation,
 )
 
 
@@ -26,6 +28,7 @@ def div_postcondition(result: int, a: int, b: int) -> bool:
 @specification("Divides two integers and returns the result")
 @pre_description("Both arguments must be integers, divisor cannot be zero")
 @post_description("Returns the integer division of a by b")
+@raises([PreconditionViolation, ZeroDivisionError])
 @precondition(div_precondition)
 @postcondition(div_postcondition)
 def div(a: int, b: int) -> int:
@@ -46,6 +49,7 @@ def sqrt_postcondition(result: float, x: float) -> bool:
 @specification("Computes the square root of a non-negative number")
 @pre_description("Input must be non-negative")
 @post_description("Result squared equals the input")
+@raises([ImplementThis, PreconditionViolation])
 @precondition(sqrt_precondition)
 @postcondition(sqrt_postcondition)
 def sqrt(x: float) -> float:

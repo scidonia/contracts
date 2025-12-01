@@ -25,6 +25,7 @@ The framework supports an iterative development style:
 - **`@pre_description`** - Verbal description of the preconditions
 - **`@post_description`** - Verbal description of the postconditions
 - **`@invariant_description`** - Verbal description of the invariants
+- **`@raises`** - Specifies the list of possible exceptions the function can raise
 
 ### Logical Condition Decorators
 
@@ -65,6 +66,11 @@ The current implementation focuses on runtime verification to establish the foun
 ## Usage
 
 ```python
+from contracts import (
+    specification, pre_description, post_description, raises,
+    precondition, postcondition, enable_contracts, PreconditionViolation
+)
+
 def div_precondition(a: int, b: int) -> bool:
     return b != 0
 
@@ -74,11 +80,18 @@ def div_postcondition(result: int, a: int, b: int) -> bool:
 @specification("Divides two integers and returns the result")
 @pre_description("Both arguments must be integers, divisor cannot be zero")
 @post_description("Returns the integer division of a by b")
+@raises([PreconditionViolation, ZeroDivisionError])
 @precondition(div_precondition)
 @postcondition(div_postcondition)
 def div(a: int, b: int) -> int:
-    # Implementation here
-    pass
+    return a // b
+
+# Enable contract checking
+enable_contracts()
+
+# Use the function - contracts will be verified at runtime
+result = div(10, 2)  # Works fine
+result = div(10, 0)  # Raises PreconditionViolation
 ```
 
 This framework helps ensure code correctness through formal specifications while maintaining the flexibility of iterative development.
