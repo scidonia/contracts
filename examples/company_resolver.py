@@ -70,6 +70,10 @@ def entity_resolve_llm_postcondition(
     if not isinstance(result, list):
         return False
 
+    # If database is empty, result should be empty
+    if len(company_database) == 0:
+        return len(result) == 0
+
     for match in result:
         if not isinstance(match, CompanyMatch):
             return False
