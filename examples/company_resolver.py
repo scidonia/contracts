@@ -131,6 +131,10 @@ def entity_resolve_llm(
     Returns:
         List of CompanyMatch objects with structured LLM output
     """
+    # If database is empty, return empty list immediately
+    if len(company_database) == 0:
+        return []
+
     # Initialize GPT-4 model
     llm = ChatOpenAI(model_name="gpt-4", temperature=0)
 
