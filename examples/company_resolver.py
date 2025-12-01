@@ -33,9 +33,8 @@ class CompanyMatch(BaseModel):
 
 class CompanyMatchList(BaseModel):
     """Pydantic model for list of company matches."""
-    
-    matches: List[CompanyMatch]
 
+    matches: List[CompanyMatch]
 
 
 def entity_resolve_llm_precondition(
@@ -130,16 +129,18 @@ def entity_resolve_llm(
     """
     # Initialize GPT-4 model
     llm = ChatOpenAI(model_name="gpt-4", temperature=0)
-    
+
     # Set up Pydantic output parser
     parser = PydanticOutputParser(pydantic_object=CompanyMatchList)
-    
+
     # Create company database context for the LLM
-    company_context = "\n".join([
-        f"ID: {company['id']}, Name: {company['name']}, URL: {company['url']}"
-        for company in company_database
-    ])
-    
+    company_context = "\n".join(
+        [
+            f"ID: {company['id']}, Name: {company['name']}, URL: {company['url']}"
+            for company in company_database
+        ]
+    )
+
     # Create the prompt
     prompt = f"""
 You are an expert at entity resolution. Given a text and a database of companies, identify any company names or variations mentioned in the text and match them to the correct company ID from the database.
@@ -163,11 +164,11 @@ Rules:
 
 {parser.get_format_instructions()}
 """
-    
+
     # Send request to LLM
     message = HumanMessage(content=prompt)
     response = llm.invoke([message])
-    
+
     # Parse the response
     try:
         parsed_result = parser.parse(response.content)
