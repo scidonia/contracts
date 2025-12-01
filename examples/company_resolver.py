@@ -37,114 +37,6 @@ class CompanyMatchList(BaseModel):
     matches: List[CompanyMatch]
 
 
-def resolve_company_names_precondition(
-    text: str, company_database: List[Dict[str, Any]]
-) -> bool:
-    """Precondition: text must be non-empty and database must contain valid company records."""
-    if not isinstance(text, str) or len(text.strip()) == 0:
-        return False
-
-    if not isinstance(company_database, list):
-        return False
-
-    for record in company_database:
-        if not isinstance(record, dict):
-            return False
-        required_fields = {"id", "name", "url"}
-        if not required_fields.issubset(record.keys()):
-            return False
-        if not isinstance(record["id"], int):
-            return False
-        if not isinstance(record["name"], str) or len(record["name"].strip()) == 0:
-            return False
-        if not isinstance(record["url"], str) or len(record["url"].strip()) == 0:
-            return False
-
-    return True
-
-
-def resolve_company_names_postcondition(
-    result: List[Dict[str, Any]], text: str, company_database: List[Dict[str, Any]]
-) -> bool:
-    """Postcondition: result must be a subset of database with valid structure."""
-    if not isinstance(result, list):
-        return False
-
-    # All returned records must be from the original database
-    for company in result:
-        if not isinstance(company, dict):
-            return False
-
-        # Check that this company exists in the database
-        found_in_db = False
-        for db_record in company_database:
-            if (
-                company.get("id") == db_record.get("id")
-                and company.get("name") == db_record.get("name")
-                and company.get("url") == db_record.get("url")
-            ):
-                found_in_db = True
-                break
-
-        if not found_in_db:
-            return False
-
-        # Check required fields are present
-        required_fields = {"id", "name", "url"}
-        if not required_fields.issubset(company.keys()):
-            return False
-
-    # No duplicates in result
-    seen_ids = set()
-    for company in result:
-        company_id = company.get("id")
-        if company_id in seen_ids:
-            return False
-        seen_ids.add(company_id)
-
-    return True
-
-
-@specification("Resolves company names in text using database lookup")
-@pre_description(
-    "Text must be a non-empty string and database must be a list of valid company records with 'id', 'name', and 'url' fields"
-)
-@post_description(
-    "Returns a list of company records that were found in the text, preserving database structure with id, name, and url"
-)
-@raises([ImplementThis, PreconditionViolation, PostconditionViolation])
-@precondition(resolve_company_names_precondition)
-@postcondition(resolve_company_names_postcondition)
-def resolve_company_names(
-    text: str, company_database: List[Dict[str, Any]]
-) -> List[Dict[str, Any]]:
-    """
-    Resolve company names found in text using company database.
-
-    Args:
-        text: The input text to search for company names
-        company_database: List of company records with 'id', 'name', and 'url' fields
-
-    Returns:
-        List of resolved companies with their database information
-    """
-    resolved_companies = []
-
-    for company in company_database:
-        company_name = company["name"]
-
-        # Check if the company name appears in the text
-        if company_name in text:
-            # Create a copy of the company record to return
-            resolved_company = {
-                "id": company["id"],
-                "name": company["name"],
-                "url": company["url"],
-            }
-            resolved_companies.append(resolved_company)
-
-    return resolved_companies
-
 
 def entity_resolve_llm_precondition(
     text: str, company_database: List[Dict[str, Any]]
@@ -292,21 +184,15 @@ if __name__ == "__main__":
     enable_contracts()
 
     # Example usage
-    sample_text = "Apple Inc. and Microsoft Corporation are major tech companies."
+    sample_text = "Apple and Microsoft are major tech companies. Google's parent company and Facebook are also big players."
     sample_database = [
         {"id": 1, "name": "Apple Inc.", "url": "https://apple.com"},
         {"id": 2, "name": "Microsoft Corporation", "url": "https://microsoft.com"},
-        {"id": 3, "name": "Google LLC", "url": "https://google.com"},
+        {"id": 3, "name": "Alphabet Inc.", "url": "https://google.com"},
+        {"id": 4, "name": "Meta Platforms Inc.", "url": "https://meta.com"},
     ]
 
-    print("Testing resolve_company_names function:")
-    try:
-        result = resolve_company_names(sample_text, sample_database)
-        print(f"Resolved companies: {result}")
-    except Exception as e:
-        print(f"Error: {e}")
-
-    print("\nTesting entity_resolve_llm function:")
+    print("Testing entity_resolve_llm function:")
     try:
         llm_result = entity_resolve_llm(sample_text, sample_database)
         print(f"LLM resolved companies: {llm_result}")
