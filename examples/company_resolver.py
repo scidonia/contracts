@@ -282,6 +282,11 @@ def entity_resolve_llm(
 
 
 if __name__ == "__main__":
+    from contracts import enable_contracts
+    
+    # Enable contract checking
+    enable_contracts()
+    
     # Example usage
     sample_text = "Apple Inc. and Microsoft Corporation are major tech companies."
     sample_database = [
@@ -290,8 +295,18 @@ if __name__ == "__main__":
         {"id": 3, "name": "Google LLC", "url": "https://google.com"},
     ]
 
+    print("Testing resolve_company_names function:")
     try:
         result = resolve_company_names(sample_text, sample_database)
         print(f"Resolved companies: {result}")
-    except ImplementThis as e:
-        print(f"Implementation needed: {e}")
+    except Exception as e:
+        print(f"Error: {e}")
+    
+    print("\nTesting entity_resolve_llm function:")
+    try:
+        llm_result = entity_resolve_llm(sample_text, sample_database)
+        print(f"LLM resolved companies: {llm_result}")
+        for match in llm_result:
+            print(f"  - Found '{match.matched_text}' -> Company ID {match.company_id} (confidence: {match.confidence})")
+    except Exception as e:
+        print(f"Error: {e}")
