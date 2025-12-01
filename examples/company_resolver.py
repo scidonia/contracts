@@ -263,10 +263,27 @@ if __name__ == "__main__":
     # Test 5: Empty database (should work but return empty results)
     print("\nTest 5: Empty database (should work)")
     try:
+        # Temporarily disable contracts to see what LLM actually returns
+        from contracts import disable_contracts
+        disable_contracts()
+        
         result = entity_resolve_llm(sample_text, [])
-        print(f"Empty database result: {result}")
+        print(f"LLM raw result with empty database: {result}")
+        print(f"Result type: {type(result)}")
+        if result:
+            for i, match in enumerate(result):
+                print(f"  Match {i}: company_id={match.company_id}, matched_text='{match.matched_text}', confidence={match.confidence}")
+        
+        # Re-enable contracts
+        enable_contracts()
+        
+        # Now test with contracts enabled
+        result_with_contracts = entity_resolve_llm(sample_text, [])
+        print(f"Empty database result with contracts: {result_with_contracts}")
     except Exception as e:
         print(f"Error: {e}")
+        # Make sure contracts are re-enabled
+        enable_contracts()
 
     # Test 6: Text with no company mentions (should work but return empty results)
     print("\nTest 6: Text with no company mentions (should work)")
