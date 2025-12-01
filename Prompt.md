@@ -81,7 +81,7 @@ from your_module import your_function, PreconditionViolation
 def test_function_success():
     enable_contracts()
     # Test successful cases
-    
+
 def test_function_precondition_violation():
     enable_contracts()
     with pytest.raises(PreconditionViolation):
@@ -92,9 +92,8 @@ def test_contracts_disabled():
     # Test that violations don't raise when contracts disabled
 ```
 
-## Step 5: Implementation (Optional)
+## Step 5: Implementation
 
-**Only if user requests**:
 1. Implement the actual function body
 2. Ensure implementation satisfies all contracts
 3. Test the implementation against the test suite
