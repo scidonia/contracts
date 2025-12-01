@@ -274,7 +274,7 @@ Rules:
     
     # Send request to LLM
     message = HumanMessage(content=prompt)
-    response = llm([message])
+    response = llm.invoke([message])
     
     # Parse the response
     try:
