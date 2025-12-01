@@ -32,7 +32,7 @@ The framework supports an iterative development style:
 - **`@postcondition`** - Defines conditions that must be true when the function returns
 - **`@invariant`** - Defines conditions that must remain true throughout execution
 
-The logical decorators use **total Python fragments** (side-effect free expressions) that can be evaluated safely.
+The logical decorators use **total Python fragments** (side-effect free expressions) that can be evaluated safely. All logical conditions must be **fully mypy typed** with no untyped variables, and should **favor functions over lambdas** for better type safety and readability.
 
 ## Runtime Verification
 
@@ -65,11 +65,17 @@ The current implementation focuses on runtime verification to establish the foun
 ## Usage
 
 ```python
+def div_precondition(a: int, b: int) -> bool:
+    return isinstance(a, int) and isinstance(b, int) and b != 0
+
+def div_postcondition(result: int, a: int, b: int) -> bool:
+    return result == a // b
+
 @specification("Divides two integers and returns the result")
 @pre_description("Both arguments must be integers, divisor cannot be zero")
 @post_description("Returns the integer division of a by b")
-@precondition(lambda a, b: isinstance(a, int) and isinstance(b, int) and b != 0)
-@postcondition(lambda result, a, b: result == a // b)
+@precondition(div_precondition)
+@postcondition(div_postcondition)
 def div(a: int, b: int) -> int:
     # Implementation here
     pass
