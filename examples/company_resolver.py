@@ -7,6 +7,9 @@ in text using a database of company IDs and URLs.
 
 from typing import List, Dict, Any
 from pydantic import BaseModel
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import HumanMessage
+from langchain.output_parsers import PydanticOutputParser
 from contracts import (
     specification,
     pre_description,
@@ -26,6 +29,12 @@ class CompanyMatch(BaseModel):
     company_id: int
     matched_text: str
     confidence: float
+
+
+class CompanyMatchList(BaseModel):
+    """Pydantic model for list of company matches."""
+    
+    matches: List[CompanyMatch]
 
 
 def resolve_company_names_precondition(
@@ -227,58 +236,53 @@ def entity_resolve_llm(
     Returns:
         List of CompanyMatch objects with structured LLM output
     """
-    matches = []
+    # Initialize GPT-4 model
+    llm = ChatOpenAI(model_name="gpt-4", temperature=0)
+    
+    # Set up Pydantic output parser
+    parser = PydanticOutputParser(pydantic_object=CompanyMatchList)
+    
+    # Create company database context for the LLM
+    company_context = "\n".join([
+        f"ID: {company['id']}, Name: {company['name']}, URL: {company['url']}"
+        for company in company_database
+    ])
+    
+    # Create the prompt
+    prompt = f"""
+You are an expert at entity resolution. Given a text and a database of companies, identify any company names or variations mentioned in the text and match them to the correct company ID from the database.
 
-    # Simulate LLM entity resolution with fuzzy matching
-    text_lower = text.lower()
+Company Database:
+{company_context}
 
-    for company in company_database:
-        company_name = company["name"]
-        company_name_lower = company_name.lower()
+Text to analyze:
+"{text}"
 
-        # Check for exact match
-        if company_name in text:
-            matches.append(
-                CompanyMatch(
-                    company_id=company["id"], matched_text=company_name, confidence=1.0
-                )
-            )
-        # Check for partial matches (simulate LLM fuzzy matching)
-        elif company_name_lower in text_lower:
-            # Find the actual matched text in original case
-            start_idx = text_lower.find(company_name_lower)
-            matched_text = text[start_idx : start_idx + len(company_name)]
-            matches.append(
-                CompanyMatch(
-                    company_id=company["id"], matched_text=matched_text, confidence=0.8
-                )
-            )
-        # Check for common abbreviations or variations
-        else:
-            # Simple heuristic: check if company name words appear in text
-            company_words = company_name_lower.split()
-            found_words = 0
-            matched_spans = []
+For each company you find in the text:
+1. Extract the exact text that refers to the company
+2. Match it to the correct company ID from the database
+3. Assign a confidence score between 0.0 and 1.0 based on how certain you are of the match
 
-            for word in company_words:
-                if len(word) > 2 and word in text_lower:  # Skip short words
-                    found_words += 1
-                    start_idx = text_lower.find(word)
-                    matched_spans.append(text[start_idx : start_idx + len(word)])
+Rules:
+- Only match companies that actually appear in the text (even if abbreviated or slightly different)
+- Use exact text spans from the input text for matched_text
+- Confidence should be 1.0 for exact matches, lower for fuzzy matches
+- If no companies are found, return an empty list
 
-            # If we found significant portion of company name
-            if found_words >= len(company_words) * 0.6 and found_words > 0:
-                matched_text = " ".join(matched_spans)
-                confidence = min(0.7, found_words / len(company_words))
-                matches.append(
-                    CompanyMatch(
-                        company_id=company["id"],
-                        matched_text=matched_text,
-                        confidence=confidence,
-                    )
-                )
-
-    return matches
+{parser.get_format_instructions()}
+"""
+    
+    # Send request to LLM
+    message = HumanMessage(content=prompt)
+    response = llm([message])
+    
+    # Parse the response
+    try:
+        parsed_result = parser.parse(response.content)
+        return parsed_result.matches
+    except Exception as e:
+        # Fallback to empty list if parsing fails
+        return []
 
 
 if __name__ == "__main__":
