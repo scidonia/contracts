@@ -105,6 +105,12 @@ def test_contracts_disabled():
 3. **Pure conditions**: All contract conditions must be side-effect free
 4. **Function over lambda**: Use named functions instead of lambda expressions
 5. **Comprehensive testing**: Cover both contract enforcement and business logic
+6. **Ignore DontImplementThis**: If a function raises `DontImplementThis`, skip it entirely and do not attempt to implement, test, or modify it
+
+## Special Exception Handling
+
+- **`ImplementThis`**: Indicates unimplemented functionality that should be developed following this process
+- **`DontImplementThis`**: Indicates code that should be completely ignored - do not implement, test, or modify functions that raise this exception
 
 ## Example Interaction Flow
 
@@ -123,3 +129,4 @@ def test_contracts_disabled():
 - If typing is ambiguous, ask clarifying questions
 - If business logic is unclear, ask for more specification details
 - Always prioritize correctness over speed of development
+- **Skip any functions that raise `DontImplementThis`** - do not process them at all

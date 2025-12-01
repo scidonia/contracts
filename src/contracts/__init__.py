@@ -46,6 +46,17 @@ class ImplementThis(Exception):
     pass
 
 
+class DontImplementThis(Exception):
+    """
+    Exception that indicates code should be ignored during implementation.
+    
+    This exception should be raised in function stubs to indicate that
+    the code is intentionally left unimplemented and should be skipped
+    by AI assistants and automated tools.
+    """
+    pass
+
+
 def enable_contracts() -> None:
     """Enable contract checking at runtime."""
     global _CONTRACT_CHECKING_ENABLED
@@ -318,4 +329,5 @@ __all__ = [
     'PostconditionViolation',
     'InvariantViolation',
     'ImplementThis',
+    'DontImplementThis',
 ]
