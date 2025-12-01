@@ -228,54 +228,56 @@ def entity_resolve_llm(
         List of CompanyMatch objects with structured LLM output
     """
     matches = []
-    
+
     # Simulate LLM entity resolution with fuzzy matching
     text_lower = text.lower()
-    
+
     for company in company_database:
         company_name = company["name"]
         company_name_lower = company_name.lower()
-        
+
         # Check for exact match
         if company_name in text:
-            matches.append(CompanyMatch(
-                company_id=company["id"],
-                matched_text=company_name,
-                confidence=1.0
-            ))
+            matches.append(
+                CompanyMatch(
+                    company_id=company["id"], matched_text=company_name, confidence=1.0
+                )
+            )
         # Check for partial matches (simulate LLM fuzzy matching)
         elif company_name_lower in text_lower:
             # Find the actual matched text in original case
             start_idx = text_lower.find(company_name_lower)
-            matched_text = text[start_idx:start_idx + len(company_name)]
-            matches.append(CompanyMatch(
-                company_id=company["id"],
-                matched_text=matched_text,
-                confidence=0.8
-            ))
+            matched_text = text[start_idx : start_idx + len(company_name)]
+            matches.append(
+                CompanyMatch(
+                    company_id=company["id"], matched_text=matched_text, confidence=0.8
+                )
+            )
         # Check for common abbreviations or variations
         else:
             # Simple heuristic: check if company name words appear in text
             company_words = company_name_lower.split()
             found_words = 0
             matched_spans = []
-            
+
             for word in company_words:
                 if len(word) > 2 and word in text_lower:  # Skip short words
                     found_words += 1
                     start_idx = text_lower.find(word)
-                    matched_spans.append(text[start_idx:start_idx + len(word)])
-            
+                    matched_spans.append(text[start_idx : start_idx + len(word)])
+
             # If we found significant portion of company name
             if found_words >= len(company_words) * 0.6 and found_words > 0:
                 matched_text = " ".join(matched_spans)
                 confidence = min(0.7, found_words / len(company_words))
-                matches.append(CompanyMatch(
-                    company_id=company["id"],
-                    matched_text=matched_text,
-                    confidence=confidence
-                ))
-    
+                matches.append(
+                    CompanyMatch(
+                        company_id=company["id"],
+                        matched_text=matched_text,
+                        confidence=confidence,
+                    )
+                )
+
     return matches
 
 
