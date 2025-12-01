@@ -22,6 +22,7 @@ from contracts import (
 
 class CompanyMatch(BaseModel):
     """Pydantic model for LLM-resolved company matches."""
+
     company_id: int
     matched_text: str
     confidence: float
@@ -119,24 +120,26 @@ def resolve_company_names(
         List of resolved companies with their database information
     """
     resolved_companies = []
-    
+
     for company in company_database:
         company_name = company["name"]
-        
+
         # Check if the company name appears in the text
         if company_name in text:
             # Create a copy of the company record to return
             resolved_company = {
                 "id": company["id"],
                 "name": company["name"],
-                "url": company["url"]
+                "url": company["url"],
             }
             resolved_companies.append(resolved_company)
-    
+
     return resolved_companies
 
 
-def entity_resolve_llm_precondition(text: str, company_database: List[Dict[str, Any]]) -> bool:
+def entity_resolve_llm_precondition(
+    text: str, company_database: List[Dict[str, Any]]
+) -> bool:
     """Precondition: text must be non-empty and database must contain valid company records."""
     if not isinstance(text, str) or len(text.strip()) == 0:
         return False
@@ -170,21 +173,21 @@ def entity_resolve_llm_postcondition(
     for match in result:
         if not isinstance(match, CompanyMatch):
             return False
-        
+
         # Check that matched_text exists in the input text
         if match.matched_text not in text:
             return False
-        
+
         # Check that company_id corresponds to a valid database entry
         found_in_db = False
         for db_record in company_database:
             if db_record.get("id") == match.company_id:
                 found_in_db = True
                 break
-        
+
         if not found_in_db:
             return False
-        
+
         # Check that confidence is between 0.0 and 1.0
         if not (0.0 <= match.confidence <= 1.0):
             return False
@@ -211,14 +214,16 @@ def entity_resolve_llm_postcondition(
 @raises([ImplementThis, PreconditionViolation, PostconditionViolation])
 @precondition(entity_resolve_llm_precondition)
 @postcondition(entity_resolve_llm_postcondition)
-def entity_resolve_llm(text: str, company_database: List[Dict[str, Any]]) -> List[CompanyMatch]:
+def entity_resolve_llm(
+    text: str, company_database: List[Dict[str, Any]]
+) -> List[CompanyMatch]:
     """
     Use an LLM to resolve company entities in text with structured output.
-    
+
     Args:
         text: The input text to search for company names
         company_database: List of company records with 'id', 'name', and 'url' fields
-        
+
     Returns:
         List of CompanyMatch objects with structured LLM output
     """
