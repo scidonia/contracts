@@ -121,6 +121,69 @@ def resolve_company_names(
     raise ImplementThis("Company name resolution not yet implemented")
 
 
+def entity_resolve_llm_precondition(text: str, company_database: List[Dict[str, Any]]) -> bool:
+    """Precondition: text must be non-empty and database must contain valid company records."""
+    if not isinstance(text, str) or len(text.strip()) == 0:
+        return False
+
+    if not isinstance(company_database, list):
+        return False
+
+    for record in company_database:
+        if not isinstance(record, dict):
+            return False
+        required_fields = {"id", "name", "url"}
+        if not required_fields.issubset(record.keys()):
+            return False
+        if not isinstance(record["id"], int):
+            return False
+        if not isinstance(record["name"], str) or len(record["name"].strip()) == 0:
+            return False
+        if not isinstance(record["url"], str) or len(record["url"].strip()) == 0:
+            return False
+
+    return True
+
+
+def entity_resolve_llm_postcondition(
+    result: List[CompanyMatch], text: str, company_database: List[Dict[str, Any]]
+) -> bool:
+    """Postcondition: result must be valid CompanyMatch objects with correct constraints."""
+    if not isinstance(result, list):
+        return False
+
+    for match in result:
+        if not isinstance(match, CompanyMatch):
+            return False
+        
+        # Check that matched_text exists in the input text
+        if match.matched_text not in text:
+            return False
+        
+        # Check that company_id corresponds to a valid database entry
+        found_in_db = False
+        for db_record in company_database:
+            if db_record.get("id") == match.company_id:
+                found_in_db = True
+                break
+        
+        if not found_in_db:
+            return False
+        
+        # Check that confidence is between 0.0 and 1.0
+        if not (0.0 <= match.confidence <= 1.0):
+            return False
+
+    # No duplicate company_ids in result
+    seen_ids = set()
+    for match in result:
+        if match.company_id in seen_ids:
+            return False
+        seen_ids.add(match.company_id)
+
+    return True
+
+
 @specification(
     "We have a list of company names and their ids, we will send these to an LLM, along with a text and ask it to associate a new exact string name it finds with a company id if it appears to be the same entity. It should use a pydantic model to constrain the LLM output and return this instead of a dictionary."
 )
@@ -130,6 +193,9 @@ def resolve_company_names(
 @post_description(
     "Returns a list of CompanyMatch objects where each matched_text exists in the input text, company_id corresponds to a valid database entry, and confidence is between 0.0 and 1.0"
 )
+@raises([ImplementThis, PreconditionViolation, PostconditionViolation])
+@precondition(entity_resolve_llm_precondition)
+@postcondition(entity_resolve_llm_postcondition)
 def entity_resolve_llm(text: str, company_database: List[Dict[str, Any]]) -> List[CompanyMatch]:
     """
     Use an LLM to resolve company entities in text with structured output.
