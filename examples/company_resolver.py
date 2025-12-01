@@ -7,9 +7,9 @@ in text using a database of company IDs and URLs.
 
 from typing import List, Dict, Any
 from pydantic import BaseModel
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import HumanMessage
-from langchain.output_parsers import PydanticOutputParser
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+from langchain_core.output_parsers import PydanticOutputParser
 from contracts import (
     specification,
     pre_description,
